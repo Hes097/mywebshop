@@ -1,15 +1,17 @@
 package com.mywebshop.product_service.controller;
 
-import com.mywebshop.product_service.model.Product;
 import com.mywebshop.product_service.service.ProductService;
+import com.mywebshop.product_service.dto.ProductRequest;
+import com.mywebshop.product_service.dto.ProductResponse;
 import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/products")
 public class ProductController {
 
     private final ProductService productService;
@@ -19,25 +21,25 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<Product> all() {
+    public List<ProductResponse> all() {
         return productService.getAllProducts();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> get(@PathVariable Long id) {
+    public ResponseEntity<ProductResponse> get(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
     @PostMapping
-    public ResponseEntity<Product>  create(@RequestBody Product product) {
-        Product createdProduct = productService.createProduct(product);
-        return ResponseEntity.status(201).body(createdProduct);
+    public ResponseEntity<ProductResponse>  create(@RequestBody ProductRequest request) {
+        ProductResponse created = productService.createProduct(request);
+        return ResponseEntity.status(201).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> update(@PathVariable Long id, @RequestBody Product product) {
-        Product updatedProduct = productService.updateProduct(id, product);
-        return ResponseEntity.ok(updatedProduct);
+    public ResponseEntity<ProductResponse> update(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
+        ProductResponse updated = productService.updateProduct(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")

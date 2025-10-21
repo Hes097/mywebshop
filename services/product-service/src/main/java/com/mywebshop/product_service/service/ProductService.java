@@ -2,8 +2,11 @@ package com.mywebshop.product_service.service;
 
 import com.mywebshop.product_service.model.Product;
 import com.mywebshop.product_service.repository.ProductRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.mywebshop.product_service.dto.ProductRequest;
+import com.mywebshop.product_service.dto.ProductResponse;
 
 import java.util.List;
 
@@ -15,31 +18,61 @@ public class ProductService {
         this.repo = repo;
     }
 
-    public List<Product> getAllProducts() {
-        return repo.findAll();
+    public List<ProductResponse> getAllProducts() {
+        return repo.findAll().stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
-    public Product getProductById(Long id) {
-        return repo.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+
+    public ProductResponse getProductById(Long id) {
+        Product product = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        return mapToResponse(product);
     }
 
     @Transactional
-    public Product createProduct(Product product) {
-        return repo.save(product);
+    public ProductResponse createProduct(ProductRequest request) {
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setPrice(request.getPrice());
+        product.setStock(request.getStock());
+        product.setDescription(request.getDescription());
+
+        Product saved = repo.save(product);
+        return mapToResponse(saved);
+    }
+
+    private ProductResponse mapToResponse(Product product) {
+        ProductResponse response = new ProductResponse();
+        response.setId(product.getId());
+        response.setName(product.getName());
+        response.setPrice(product.getPrice());
+        response.setStock(product.getStock());
+        response.setDescription(product.getDescription());
+        return response;
     }
 
     @Transactional
-    public Product updateProduct(Long id, Product updated) {
-        Product p = getProductById(id);
-        p.setName(updated.getName());
-        p.setDescription(updated.getDescription());
-        p.setPrice(updated.getPrice());
-        p.setStock(updated.getStock());
-        return repo.save(p);
+    public ProductResponse updateProduct(Long id, ProductRequest request) {
+        Product product = findProductEntityById(id);
+        product.setName(request.getName());
+        product.setPrice(request.getPrice());
+        product.setStock(request.getStock());
+        product.setDescription(request.getDescription());
+
+        Product updated = repo.save(product);
+        return mapToResponse(updated);
     }
 
     @Transactional
     public void deleteProduct(Long id) {
         repo.deleteById(id);
     }
+
+    private Product findProductEntityById(Long id) {
+        return repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id " + id));
+    }
+
 }
